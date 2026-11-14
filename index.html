@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10243a"><meta name="description" content="Gestion industrielle de peinture et suivi de production">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icons/icon.svg">
+  <link rel="stylesheet" href="./styles.css"><title>Industrial Paint Management</title>
+</head>
+<body>
+  <header class="topbar"><div class="brand"><div class="brandmark">IP</div><div><strong>Industrial Paint</strong><small>Production · Coating · Quality</small></div></div><div id="connection" class="connection">● Hors ligne</div></header>
+  <main>
+    <section id="loginView" class="login-wrap">
+      <div class="login-card">
+        <div class="eyebrow">ESPACE SÉCURISÉ</div><h1>Gestion de peinture industrielle</h1>
+        <p class="muted">Connectez-vous avec le code d’accès remis par l’administrateur.</p>
+        <label for="accessCode">Code d’accès</label><input id="accessCode" type="password" autocomplete="one-time-code" placeholder="Saisir votre code" maxlength="64">
+        <button id="loginBtn" class="primary full">Se connecter</button><p id="loginError" class="error" role="alert"></p>
+      </div>
+    </section>
+    <section id="appView" hidden>
+      <div class="welcome"><div><div class="eyebrow">TABLEAU DE BORD</div><h1 id="welcomeName">Bienvenue</h1><p id="roleLabel" class="role-label" aria-live="polite" hidden></p></div><button id="logoutBtn" class="ghost">Déconnexion</button></div>
+      <nav class="tabs" aria-label="Navigation">
+        <button class="tab active" data-tab="production">Production</button><button class="tab" data-tab="records">Historique</button><button class="tab" data-tab="chemicals">Matières chimiques</button>
+      </nav>
+      <section id="productionPanel" class="panel">
+        <div class="section-head"><div><div class="eyebrow">NOUVEL ENREGISTREMENT</div><h2>Calcul de production</h2></div><span class="pill">Calcul par couche</span></div>
+        <form id="productionForm">
+          <div class="form-grid">
+            <div><label for="system">Système</label><select id="system"><option>PCM</option><option>PRINTING</option><option>VCM</option></select></div>
+            <div><label for="coilType">Type de pièce / bobine</label><select id="coilType"></select></div>
+            <div><label for="coilOrigin">Origine de bobine</label><select id="coilOrigin"><option value="CHINA">Bobine China</option><option value="KOREA">Bobine Korea</option><option value="TURKU">Bobine Turku</option><option value="ALGERIE">Bobine Algérie</option></select></div>
+            <div><label for="recordDate">Date</label><input id="recordDate" type="date" required></div>
+            
+            <div><label for="thickness">Épaisseur (mm)</label><input id="thickness" type="number" min="0.01" step="0.001" value="0.45" readonly required></div>
+            <div><label for="length">Longueur (m)</label><input id="length" type="number" min="0.01" step="0.01" placeholder="Ex. 1200" required></div>
+          </div>
+          <div class="weight-strip"><div><small>Largeur</small><strong id="widthDisplay">— mm</strong></div><div><small>Poids théorique avant peinture</small><strong id="baseWeight">— kg</strong></div><div><small>Poids total après peinture</small><strong id="productionWeight">— kg</strong></div></div>
+          <div class="form-grid compact">
+            <div><label for="preWeight">PRE ajouté (kg)</label><input id="preWeight" type="number" min="0" step="0.001" value="0"></div>
+            <div><label for="afterWeight">Poids mesuré après peinture (kg)</label><input id="afterWeight" type="number" step="0.001" readonly aria-readonly="true"></div>
+            <div><label for="protectionStatus">Calcul de protection — État</label><select id="protectionStatus"><option value="CONFORME">Conforme</option><option value="NON_CONFORME">Non conforme</option></select></div>
+            <div><label for="processWaste">Déchet process (kg)</label><input id="processWaste" type="number" min="0" step="0.001" value="0"></div>
+            <div><label for="prelaqueQty">Prélaqué (kg)</label><input id="prelaqueQty" type="number" min="0" step="0.001" value="0"></div>
+            <div><label for="rawMaterialQty">Matière première (kg)</label><input id="rawMaterialQty" type="number" min="0" step="0.001" value="0"></div>
+          </div>
+          <div class="section-head layer-head"><div><div class="eyebrow">CONSOMMATION</div><h2>Coefficients indépendants</h2></div><small class="muted">kg consommés / poids de production</small></div>
+          <div id="layers" class="layer-grid"></div>
+          <div class="chemical-section film-section"><h3>Consommation PE-Film</h3><p class="muted">Choisissez manuellement le type de film. La largeur proposée dépend du système et du type de pièce ; la longueur consommée est saisie en mètres.</p><div class="form-grid">
+            <div><label for="peFilmType">Type de PE-Film</label><select id="peFilmType"><option value="">Choisir un PE-Film</option></select></div>
+            <div><label for="peFilmWidth">Largeur PE-Film (mm)</label><input id="peFilmWidth" type="number" min="0" step="0.1" placeholder="Largeur" readonly></div>
+            <div><label for="peFilmLength">Longueur consommée (m)</label><input id="peFilmLength" type="number" min="0" step="0.01" value="0"></div>
+          </div><div class="form-grid" id="vcmFilmBlock" hidden>
+            <div><label for="vcmFilmType">Type de VCM-Film</label><select id="vcmFilmType"><option value="">Choisir un VCM-Film</option></select></div>
+            <div><label for="vcmFilmWidth">Largeur VCM-Film (mm)</label><input id="vcmFilmWidth" type="number" min="0" step="0.1" readonly></div>
+            <div><label for="vcmFilmLength">Longueur consommée VCM (m)</label><input id="vcmFilmLength" type="number" min="0" step="0.01" value="0"></div>
+          </div></div>
+          <div class="result-bar"><div><small>Statut du calcul</small><strong id="calcStatus">Complétez les dimensions</strong></div><button class="primary" id="saveBtn" type="submit">Enregistrer dans le cloud</button></div>
+          <p id="saveMessage" class="muted" role="status"></p>
+        </form>
+      <section id="adminPanel" class="panel" hidden>
+        <div class="section-head"><div><div class="eyebrow">GESTION AVANCÉE</div><h2>Gestion avancée — accès ADMIN</h2></div><span class="pill">ADMIN</span></div>
+        <form id="createCodeForm" class="admin-form">
+          <div><label for="newName">Nom du compte</label><input id="newName" required placeholder="Nom et prénom"></div>
+          <div><label for="newRole">Rôle</label><select id="newRole"><option value="ADMIN">ADMIN — administrateur</option></select></div>
+          <button class="primary" type="submit">Créer un code d’accès</button>
+        </form>
+        <div id="newCodeResult" class="code-result" hidden></div>
+        <p class="muted">Le code est affiché une seule fois. Transmettez-le directement à son titulaire.</p>
+        <div class="chemical-section"><h3>Codes et comptes enregistrés</h3><div id="usersList" class="table-wrap">Chargement…</div></div>
+<div class="chemical-section"><h3>Gestion des matières chimiques</h3></div>
+        <div id="chemicalProductAdmin" class="chemical-section">
+          <h3>Ajouter une nouvelle matière</h3>
+          <form id="chemicalProductForm" class="form-grid">
+            <div><label for="chemicalProductName">Nom de la matière *</label><input id="chemicalProductName" required maxlength="160" placeholder="Nom du produit"></div>
+            <div><label for="chemicalProductUnit">Unité *</label><select id="chemicalProductUnit" required><option value="kg">kg</option><option value="L">L</option><option value="g">g</option><option value="unit">Unité</option></select></div>
+            <div><label for="chemicalMinimumStock">Seuil d’alerte fixe (kg)</label><input id="chemicalMinimumStock" type="number" min="0" step="0.001" value="50" readonly required></div>
+            <div class="chemical-form-action"><button class="primary" type="submit">Ajouter la matière</button></div>
+          </form>
+        </div>
+<div id="chemicalNonconformingAdmin" class="chemical-section alert-section">
+          <h3>Produits chimiques périmés / Non conformes</h3>
+          <p class="muted">Registre séparé des matières expirées ou interdites d’utilisation. Ces quantités ne sont pas ajoutées au stock disponible.</p>
+          <form id="chemicalNonconformingForm" class="form-grid">
+            <div><label for="nonconformingName">Nom de la matière chimique *</label><input id="nonconformingName" required maxlength="160" placeholder="Nom du produit"></div>
+            <div><label for="nonconformingCode">Code / Référence</label><input id="nonconformingCode" maxlength="80" placeholder="Facultatif"></div>
+            <div><label for="nonconformingQty">Quantité concernée</label><input id="nonconformingQty" type="number" min="0" step="0.001" value="0"></div>
+            <div><label for="nonconformingUnit">Unité</label><select id="nonconformingUnit"><option value="kg">kg</option><option value="L">L</option><option value="g">g</option><option value="unit">Unité</option></select></div>
+            <div><label for="nonconformingExpiry">Date d’expiration</label><input id="nonconformingExpiry" type="date"></div>
+            <div><label for="nonconformingDate">Date de déclaration *</label><input id="nonconformingDate" type="date" required></div>
+            <div><label class="checkbox-label" for="nonconformingWaste"><input id="nonconformingWaste" type="checkbox"> Déclarer cette matière comme déchet (Déchet)</label><small class="muted">Cochez si la matière est destinée à la filière déchets.</small></div>
+            <div class="span-2"><label for="nonconformingNote">Observation</label><input id="nonconformingNote" maxlength="500" value="Non conforme" required></div>
+            <div class="chemical-form-action"><button class="primary" type="submit">Ajouter au registre Non conforme</button></div>
+          </form>
+          <div class="table-wrap"><table><thead><tr><th>Date déclaration</th><th>Matière</th><th>Code</th><th>Quantité</th><th>Expiration</th><th>État</th><th>Destination</th><th>Observation</th><th>Action</th></tr></thead><tbody id="chemicalNonconformingBody"><tr><td colspan="9">Chargement…</td></tr></tbody></table></div>
+        </div>
+<div class="chemical-section"><h3>Stock total par matière</h3><div class="table-wrap"><table><thead><tr><th>Code</th><th>Matière</th><th>Unité</th><th>Stock actuel</th><th>Seuil</th><th>État</th><th>Action</th></tr></thead><tbody id="chemicalProductsBody"><tr><td colspan="7">Chargement…</td></tr></tbody></table></div></div>
+<div class="chemical-section"><div class="section-head"><h3>Consommation annuelle par matière</h3><div class="form-inline"><label for="annualConsumptionYear">Année</label><select id="annualConsumptionYear"></select></div></div><p class="muted">Total calculé automatiquement à partir de toutes les sorties (OUT) : consommation de production, diluant et consommation manuelle par baril.</p><div class="table-wrap"><table><thead><tr><th>Matière</th><th>Unité</th><th>Quantité consommée pendant l’année</th></tr></thead><tbody id="chemicalAnnualConsumptionBody"><tr><td colspan="3">Chargement…</td></tr></tbody></table></div></div>
+
+        <section id="paintBarrelManagementSection" class="chemical-section">
+          <h3>Gestion des barils de peinture</h3>
+          <form id="paintBarrelForm" class="form-grid">
+            <div><label for="paintBarrelProduct">Type de peinture *</label><select id="paintBarrelProduct" required><option value="">Choisir une peinture</option></select></div>
+            <div><label for="paintBarrelNumber">N° du baril *</label><input id="paintBarrelNumber" required maxlength="80"></div>
+            <div><label for="paintBarrelLot">N° de lot *</label><input id="paintBarrelLot" required maxlength="100"></div>
+            <div><label for="paintBarrelGross">Poids brut (kg) *</label><input id="paintBarrelGross" type="number" min="0.001" step="0.001" required></div>
+            <div><label for="paintBarrelTare">Tare (kg) *</label><input id="paintBarrelTare" type="number" min="0" step="0.001" value="0" required></div>
+            <div><label for="paintBarrelNet">Poids net (kg)</label><input id="paintBarrelNet" type="number" readonly value="0"></div>
+            <div class="form-actions"><button class="primary" type="submit">Ajouter le baril</button></div>
+          </form>
+          <div class="table-wrap"><table><thead><tr><th>Peinture</th><th>Système / Couche</th><th>Baril</th><th>Lot</th><th>Poids net</th><th>Consommé</th><th>Restant</th><th>Action</th></tr></thead><tbody id="paintBarrelManagementBody"><tr><td colspan="8">Chargement…</td></tr></tbody></table></div>
+          <p class="muted">Les poids brut/tare d’un baril ayant un historique de consommation ne peuvent pas être modifiés. Un baril ayant un historique ne peut pas être supprimé.</p>
+        </section>
+        <div class="chemical-section daily-consumption-section">
+          <h3>Consommation journalière — saisie manuelle ADMIN</h3>
+          <p class="muted">Pour chaque couche, choisissez la peinture déjà enregistrée dans Matières chimiques et saisissez la quantité consommée. Le stock de cette peinture est déduit automatiquement. Le coefficient est calculé : consommation (kg) ÷ poids de production (kg). Le Diluant est également déduit du stock chimique.</p>
+          <form id="dailyPaintForm">
+            <div class="form-grid">
+              <div><label for="dailyDate">Date *</label><input id="dailyDate" type="date" required></div>
+              <div><label for="dailySystem">Système *</label><select id="dailySystem"><option value="PCM">PCM</option><option value="PRINTING">PRINTING</option><option value="VCM">VCM</option></select></div>
+              <div><label for="dailyProductionWeight">Poids de production du jour (kg) *</label><input id="dailyProductionWeight" type="number" min="0.001" step="0.001" required placeholder="Ex. 12500"></div>
+            </div>
+            <div class="daily-layer-grid" id="dailyPaintLayers"></div>
+            <div class="form-grid daily-diluant-row">
+              <div><label for="dailyDiluantProduct">Diluant — matière chimique</label><select id="dailyDiluantProduct"><option value="">Choisir la matière Diluant</option></select></div>
+              <div><label for="dailyDiluantChemist">Consommation Diluant — Chimiste (kg)</label><input id="dailyDiluantChemist" type="number" min="0" step="0.001" value="0"></div>
+              <div><label for="dailyDiluantRollers">Nettoyage des rouleaux (kg)</label><input id="dailyDiluantRollers" type="number" min="0" step="0.001" value="0"></div>
+              <div><label for="dailyDiluantPumps">Nettoyage des pompes (kg)</label><input id="dailyDiluantPumps" type="number" min="0" step="0.001" value="0"></div>
+              <div><label for="dailyDiluantTotal">Consommation totale Diluant (kg)</label><input id="dailyDiluantTotal" type="number" readonly value="0"></div>
+              <div><label for="dailyNotes">Remarques</label><input id="dailyNotes" maxlength="500" placeholder="Facultatif"></div>
+            </div>
+            <div class="daily-form-footer"><span id="dailyCoefficientSummary" class="muted">Les coefficients apparaîtront après la saisie.</span><div><button class="ghost" id="cancelDailyEdit" type="button" hidden>Annuler la modification</button> <button class="primary" type="submit">Enregistrer la consommation du jour</button></div></div>
+          </form>
+          <div id="dailyPaintHistorySection" class="chemical-section"><div class="section-head"><h3>Historique des consommations journalières</h3><div class="daily-filter"><label for="dailyHistoryDate">Filtrer par date</label><input id="dailyHistoryDate" type="date"><button id="printDailyPaintHistory" type="button" class="ghost">Imprimer</button></div></div>
+            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Système</th><th>Poids après peinture</th><th>Détail couches / coefficient</th><th>Diluant</th><th>Actions</th></tr></thead><tbody id="dailyPaintHistoryBody"><tr><td colspan="6">Chargement…</td></tr></tbody></table></div>
+          </div>
+        </div>
+        <section id="chemicalConsumptionHistorySection" class="chemical-section">
+          <div class="section-head">
+            <div><h3>Historique de consommation des matières chimiques</h3><p class="muted">Sorties de stock (production, consommation journalière et consommation manuelle). Les mouvements corrigés restent visibles et conservés dans l’audit.</p></div>
+            <button id="printChemicalConsumptionHistory" type="button" class="ghost">Imprimer</button>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Matière chimique</th><th>Quantité</th><th>Unité</th><th>Origine / Baril</th><th>Action</th></tr></thead><tbody id="chemicalConsumptionHistoryBody"><tr><td colspan="6">Chargement…</td></tr></tbody></table></div>
+        </section>
+
+      </section>
+      </section>
+
+      <section id="recordsPanel" class="panel" hidden>
+        <div class="section-head"><div><div class="eyebrow">DONNÉES PARTAGÉES</div><h2>Historique de production</h2></div><button id="refreshBtn" class="ghost">Actualiser</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Système</th><th>Bobine</th><th>Poids après peinture</th><th>Actions</th></tr></thead><tbody id="recordsBody"><tr><td colspan="5">Aucune donnée chargée.</td></tr></tbody></table></div>
+      </section>
+
+      <section id="chemicalsPanel" class="panel" hidden>
+        <div class="section-head"><div><div class="eyebrow">STOCK CHIMIQUE</div><h2>Gestion des matières chimiques</h2></div><button id="chemicalRefreshBtn" class="ghost" type="button">Actualiser</button></div>
+        <div class="chemical-summary"><div><small>Matières enregistrées</small><strong id="chemicalProductCount">0</strong></div><div><small>Alertes ≤ 50 kg</small><strong id="chemicalLowCount">0</strong></div></div>
+        <div class="chemical-section alert-section nonconforming-notifications"><h3>⚠ Alertes — Matières chimiques non conformes</h3><p class="muted">Avis visibles : matière déclarée non conforme, quantité concernée, date de déclaration et destination déchet.</p><div class="table-wrap"><table><thead><tr><th>Date de déclaration</th><th>Matière chimique</th><th>Quantité non conforme</th><th>État</th><th>Destination</th></tr></thead><tbody id="chemicalNonconformingAlertsBody"><tr><td colspan="5">Chargement…</td></tr></tbody></table></div></div>
+        <div class="chemical-section alert-section"><h3>Alertes de stock faible — 50 kg ou moins</h3><div class="table-wrap"><table><thead><tr><th>Code</th><th>Matière</th><th>Stock restant</th><th>Seuil</th></tr></thead><tbody id="chemicalAlertsBody"><tr><td colspan="4">Chargement…</td></tr></tbody></table></div></div>
+        
+        
+        <div class="chemical-section">
+          <h3>Enregistrer un nouveau baril</h3>
+          <form id="chemicalBarrelForm" class="form-grid">
+            <div><label for="barrelProduct">Matière chimique *</label><select id="barrelProduct" required></select></div>
+            <div><label for="barrelGross">Poids brut (kg) *</label><input id="barrelGross" type="number" min="0.001" step="0.001" required></div>
+            <div><label for="barrelTare">Poids à vide (kg) *</label><input id="barrelTare" type="number" min="0" step="0.001" required></div>
+            <div class="chemical-form-action"><button class="primary" type="submit">Enregistrer le baril</button></div>
+          </form><p class="muted">Le poids net est calculé automatiquement et ajouté une seule fois au stock.</p>
+        </div>
+        <div class="chemical-section">
+          <h3>Consommation manuelle</h3>
+          <form id="chemicalOutForm" class="form-grid">
+            <div><label for="outBarrel">Baril *</label><select id="outBarrel" required></select></div>
+            <div><label for="outQuantity">Quantité consommée (kg) *</label><input id="outQuantity" type="number" min="0.001" step="0.001" required></div>
+            <div><label for="outDate">Date *</label><input id="outDate" type="date" required></div>
+            <div class="span-2"><label for="outNotes">Note de consommation</label><select id="outNotes" required><option value="" disabled selected>Choisir le niveau de consommation</option><option value="Consommation élevée">Consommation élevée</option><option value="Consommation faible">Consommation faible</option><option value="Consommation satisfaisante">Consommation satisfaisante</option></select></div>
+            <div class="chemical-form-action"><button class="primary" type="submit">Enregistrer la consommation</button></div>
+          </form>
+        </div>
+        <div class="chemical-section">
+          <h3>Inventaire physique par baril</h3>
+          <form id="chemicalCountForm" class="form-grid">
+            <div><label for="countBarrel">Baril *</label><select id="countBarrel" required></select></div>
+            <div><label for="countQuantity">Quantité réellement constatée (kg) *</label><input id="countQuantity" type="number" min="0" step="0.001" required></div>
+            <div><label for="countMaterialStatus">État de la matière restante *</label><select id="countMaterialStatus" required><option value="A_VERIFIER">À vérifier</option><option value="CONFORME">Conforme — Utilisable</option><option value="NON_CONFORME">Non conforme — Non utilisable</option></select></div>
+            <div class="chemical-form-action"><button class="primary" type="submit">Valider l’inventaire</button></div>
+          </form><p class="muted">L’inventaire annuel enregistre la quantité réellement restante et sa conformité d’utilisation. Les matières non conformes sont exclues du stock disponible.</p>
+        </div>
+        <div class="chemical-section"><h3>Historique des barils et quantités restantes</h3><div class="table-wrap"><table><thead><tr><th>Date</th><th>Opération</th><th>Date d’ajout du baril</th><th>Matière chimique</th><th>Quantité restante</th><th>État de la matière</th></tr></thead><tbody id="chemicalInventoryHistoryBody"><tr><td colspan="6">Chargement…</td></tr></tbody></table></div></div>
+        <div class="chemical-section"><h3>Historique des inventaires physiques</h3><div class="table-wrap"><table><thead><tr><th>Date inventaire</th><th>Date d’ajout du baril</th><th>Matière chimique</th><th>Quantité constatée</th><th>État de la matière</th></tr></thead><tbody id="chemicalPhysicalInventoryHistoryBody"><tr><td colspan="5">Chargement…</td></tr></tbody></table></div></div>
+        
+        <div class="chemical-section"><h3>État actuel des barils</h3><div class="table-wrap"><table><thead><tr><th>Date d’ajout</th><th>Matière chimique</th><th>Poids initial</th><th>Consommé</th><th>Restant</th><th>État de la matière</th></tr></thead><tbody id="chemicalBarrelsBody"><tr><td colspan="6">Chargement…</td></tr></tbody></table></div></div>
+        
+      </section>
+
+    </section>
+  </main>
+  <footer>Industrial Paint Management <span>·</span> PWA v1.0</footer>
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script>
+    window.addEventListener("error", function () {
+      const box = document.getElementById("loginError");
+      if (box) box.textContent = "Erreur de chargement de l’application. Actualisez la page et réessayez.";
+    });
+    window.addEventListener("unhandledrejection", function () {
+      const box = document.getElementById("loginError");
+      if (box) box.textContent = "Erreur d’initialisation. Vérifiez votre connexion puis réessayez.";
+    });
+  </script>
+  <script type="module" src="./app.js"></script>
+</body></html>
